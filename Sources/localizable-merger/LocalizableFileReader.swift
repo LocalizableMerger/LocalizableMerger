@@ -8,7 +8,12 @@ class LocalizableFileReader{
     }
     func read(_ localizableFile: LocalizableFile) -> Dictionary<String, String>{
         if #available(OSX 10.11, *) {
-            return NSDictionary(contentsOf: URL(fileURLWithPath: localizableFile.url, isDirectory: false, relativeTo: URL(fileURLWithPath: configuration.workingDirectory, isDirectory: true))) as! Dictionary<String, String>
+            if let dict = NSDictionary(contentsOf: URL(fileURLWithPath: localizableFile.url, isDirectory: false, relativeTo: URL(fileURLWithPath: configuration.workingDirectory, isDirectory: true))) as? Dictionary<String, String>{
+                return dict
+            }else{
+                print("Couldn't read \(localizableFile.url)")
+                return [:]
+            }
         } else {
             return [:]
         }
