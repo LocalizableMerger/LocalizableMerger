@@ -16,7 +16,7 @@ class LocalizableFileWriter{
             return key1 < key2
         }).reduce("") { (str, arg1) -> String in
             let (key, value) = arg1
-            let line = "\"\(key)\" = \"\(value)\";\n"
+            let line = "\"\(key)\" = \"\(value.replacingOccurrences(of: "\"", with: "\\\""))\";\n"
             return str + line
         }
         let baseURL = URL(fileURLWithPath: configuration.workingDirectory, isDirectory: true)

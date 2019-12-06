@@ -15,7 +15,7 @@ class LocalizeFiles{
         
         let objects = enumerator.allObjects
             .compactMap({ $0 as? String })
-            .filter({ $0.hasSuffix(".strings")})
+            .filter({ $0.hasSuffix(".strings") && !$0.hasSuffix("_generated.strings")})
             .compactMap({ self.generateObjectFrom(path: $0)})
         return objects
         
