@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "localizable-merger",
+    products: [
+        .executable(name: "localizable-merger", targets: ["localizable-merger"]),
+    ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(
