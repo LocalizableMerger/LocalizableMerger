@@ -76,7 +76,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--workDirectory &quot;/Users/csimon/Documents/002_Trabajo/Proyectos/smart-ott-ios&quot;"
+            argument = "--workDirectory $(SRCROOT)/Example"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--baseFolder Base/"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

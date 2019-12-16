@@ -11,8 +11,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(
-        url: "https://github.com/behrang/YamlSwift.git",
-        from: "3.4.4"),
+        url: "https://github.com/behrang/YamlSwift.git", from: "3.4.4"),
         .package(url: "https://github.com/nsomar/Guaka.git", from: "0.4.1")
 
     ],
