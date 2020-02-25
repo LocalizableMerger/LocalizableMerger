@@ -42,13 +42,13 @@ let command = Command(usage: "localizable-merger") { flags, args in
     
     if let config = flags.getString(name: Flags.configFile.rawValue){
         let configFilePath = URL(fileURLWithPath: config, isDirectory: false, relativeTo: URL(fileURLWithPath: workingDirectory, isDirectory: true))
-        
-        configuration = YAMLConfigurationReader().read(file: configFilePath, originConfiguration: configuration)
+        if FileManager.default.fileExists(atPath: configFilePath.absoluteString){
+            configuration = YAMLConfigurationReader().read(file: configFilePath, originConfiguration: configuration)
+        }
     }
     if configuration.baseFolder.isEmpty{
         print("Error base folder not set")
     }
-    print(configuration)
     execute(configuration: configuration)
 }
 Flags.allCases.map { (flag) -> Flag in
