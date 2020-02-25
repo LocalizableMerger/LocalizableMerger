@@ -87,4 +87,11 @@ xcuserdata
 *.xcodeproj
 
 
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+
 # End of https://www.gitignore.io/api/swift,swiftpm
