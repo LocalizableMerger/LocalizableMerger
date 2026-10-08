@@ -1,45 +1,108 @@
-# Localizable Merger
+<h1 align="center">LocalizableMerger</h1>
 
-## Purpose
+<p align="center">
+  Keep one base <code>Localizable.strings</code> file, and override only the keys that each target changes.
+</p>
 
-The purpose of this tool is to help to mantain Localizable.strings of Xcode projects when you have multiple targets in the same project and you want to define a base Localizable and change only several strings for child targets. This avoids copy and paste of multiple files. 
+<p align="center">
+  <a href="https://github.com/LocalizableMerger/LocalizableMerger/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/LocalizableMerger/LocalizableMerger/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white">
+  <img alt="Platforms" src="https://img.shields.io/badge/platforms-macOS%2013%2B-blue">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPL--3.0-green"></a>
+</p>
+
+---
+
+## Why
+
+A white-label Xcode project has many targets. Each target needs the same texts with a small number of changes.
+A copy of the full `.strings` file in each target is hard to maintain.
+
+LocalizableMerger solves this problem:
+
+- You keep the common texts in one base folder.
+- Each target file contains only the keys that it overrides.
+- The tool writes a full `<Name>_generated.strings` file next to each target file.
+- The output is deterministic. A second run with the same input changes no files.
 
 ## Install
 
-### Mint
+### SwiftPM plugin
 
-You can install it using Mint
+Add the package to the `dependencies` of your `Package.swift`:
 
+```swift
+.package(url: "https://github.com/LocalizableMerger/LocalizableMerger", from: "2.0.0")
 ```
-mint install LocalizableMerger/LocalizableMerger
+
+Then run the plugin from the root of your package:
+
+```sh
+swift package --allow-writing-to-package-directory merge-localizables
 ```
 
+The plugin uses the package directory as the work directory.
+The plugin sends all other arguments to the tool, for example `--check`.
 
-## How to use it
+### Build from source
 
+```sh
+git clone https://github.com/LocalizableMerger/LocalizableMerger.git
+cd LocalizableMerger
+swift build -c release
+cp .build/release/localizable-merger /usr/local/bin/
+```
 
-You can execute localizable merge using this command from the root folder of your project
+To run the tool without an install, use `swift run`:
 
-`localizable-merger --baseFolder <Folder where base Localizable Strings are placed>`
+```sh
+swift run localizable-merger --work-directory /path/to/project --base-folder Base
+```
 
-For example
+Optional: [Mint](https://github.com/yonaskolb/Mint) and [Mise](https://mise.jdx.dev) can also build the tool from this repository.
 
-`localizable-merger --baseFolder project/Localizables`
+## Quick start
 
+1. Put the common `.strings` files in one folder, for example `Project/Base`.
+2. Keep only the override keys in each target file.
+3. Create `LocalizableMerger.yml` in the root of the project:
 
-## What it does?
+   ```yaml
+   baseFolder: Project/Base
+   ```
 
-Localizable Merger look into your project folders looking for \*.string files. Files that are on the base folder at taken as reference files so if one localizable key is not in your specific Localizable file and it's on the base files will be copied to the generated file
+4. Run the tool from the root of the project:
 
-For an example you can see the example folder:
+   ```sh
+   localizable-merger
+   ```
 
--  Example/Base/en.lproj/Localizable.string
--  Example/Base/es.lproj/Localizable.string
--  Example/AppA/en.lproj/Localizable.string
--  Example/AppB/en.lproj/Localizable.string
--  Example/AppB/es.lproj/Localizable.string
+5. Add each `*_generated.strings` file to its Xcode target.
 
-Base Localizable in English is:
+The tool prints one line for each file and a summary:
+
+```text
+created      AppA/en.lproj/Localizable_generated.strings (3 keys)
+created      AppB/en.lproj/Localizable_generated.strings (3 keys)
+created      AppB/es.lproj/Localizable_generated.strings (3 keys)
+3 generated, 0 unchanged, 0 skipped, 0 warnings.
+```
+
+## Example
+
+The [`Example`](Example) folder contains this project:
+
+```text
+Example/
+├── LocalizableMerger.yml
+├── Base/en.lproj/Localizable.strings
+├── Base/es.lproj/Localizable.strings
+├── AppA/en.lproj/Localizable.strings
+├── AppB/en.lproj/Localizable.strings
+└── AppB/es.lproj/Localizable.strings
+```
+
+**Before.** The base file `Base/en.lproj/Localizable.strings`:
 
 ```
 "key_1" = "Hello World";
@@ -47,28 +110,151 @@ Base Localizable in English is:
 "key_3" = "Finish app";
 ```
 
-App A Localizable in English is:
+The target file `AppA/en.lproj/Localizable.strings`:
 
 ```
 "key_2" = "Welcome to App A";
 ```
 
-After Localizable Merger execution will create a new file, `Example/AppA/en.lproj/Localizable_generated.string` and will have this structure:
+**After.** The tool writes `AppA/en.lproj/Localizable_generated.strings`:
 
 ```
+// Generated by LocalizableMerger. Do not edit this file.
+// Edit the source .strings files, then run localizable-merger again.
+
 "key_1" = "Hello World";
 "key_2" = "Welcome to App A";
 "key_3" = "Finish app";
 ```
 
-On each execution generated files will be updated with new localizables.
+## How it works
 
+1. The tool finds each `.strings` file that is in a `<language>.lproj` folder.
+2. A file in the base folder is a base file. All other files are target files.
+3. The tool pairs each target file with the base file of the same language and the same table name.
+   The table name is the file name, for example `Localizable` or `InfoPlist`.
+4. The tool merges the two files. A key in the target file overrides the same key in the base file.
+5. The tool sorts the keys and writes the generated file as UTF-8.
 
-## TODO
+The tool ignores these items:
 
-- Add generated header on generated files to inform that this file should not be edit manually
-- Extend YAML file with sort options
-	- Give option of sort base file
-- Add tests
-- Refactor main file
-- Test integration with other tools (Tuist) 
+- Files that end with the generated suffix, for example `Localizable_generated.strings`
+- Hidden directories
+- `.build`, `Pods`, `Carthage`, `DerivedData`, and `node_modules`
+- The paths in the `exclude` list
+
+The tool reports these conditions:
+
+| Condition | Result |
+| --- | --- |
+| A target file has no base file for its language and table. | The tool skips the file and prints `skipped`. |
+| A target file has a key that is not in the base file (an orphan key). | Warning. Error with `--strict`. |
+| A file contains the same key two times. | Warning. The last value wins. |
+| A file has a syntax error. | Error with the file and the line. |
+
+## Configuration
+
+The tool reads `LocalizableMerger.yml` from the work directory. The file is optional.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `baseFolder` | text | none | The folder that contains the base `.strings` files. Required if `--base-folder` is not set. |
+| `exclude` | list of paths | empty | The files and folders that the tool ignores. |
+| `generatedSuffix` | text | `_generated` | The text that the tool adds to the name of a generated file. |
+
+Relative paths start from the work directory. A command-line option overrides the same key in the file.
+
+```yaml
+baseFolder: Project/Base
+exclude:
+  - Project/Vendor
+  - Project/Legacy/en.lproj/Old.strings
+generatedSuffix: _generated
+```
+
+## Command-line reference
+
+```text
+localizable-merger [--base-folder <path>] [--work-directory <path>] [--config-file <path>]
+                   [--dry-run] [--check] [--strict] [--quiet]
+```
+
+| Option | Description |
+| --- | --- |
+| `--base-folder <path>` | The folder that contains the base `.strings` files. |
+| `--work-directory <path>` | The root of the project. The default is the current directory. |
+| `--config-file <path>` | The configuration file. The default is `LocalizableMerger.yml`. An explicit file must exist. |
+| `--dry-run` | Show the result and write no files. |
+| `--check` | Write no files. Exit with code 1 when a generated file is absent or stale. |
+| `--strict` | Treat orphan keys as errors. Exit with code 1 when a target file has an orphan key. |
+| `--quiet` | Print warnings and errors only. |
+| `--version` | Show the version. |
+| `-h`, `--help` | Show the help. |
+
+The tool prints warnings and errors to the standard error stream.
+The tool uses color only when the output is a terminal and `NO_COLOR` is not set.
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Success. |
+| `1` | An error occurred, `--check` found an absent or stale file, or `--strict` found an orphan key. |
+| `64` | The command-line arguments are not valid. |
+
+## Xcode Run Script build phase
+
+Add a Run Script build phase before the Copy Bundle Resources phase:
+
+```sh
+if command -v localizable-merger >/dev/null; then
+  localizable-merger --work-directory "$SRCROOT" --quiet
+else
+  echo "warning: localizable-merger is not installed"
+fi
+```
+
+If the User Script Sandboxing build setting is on, then set `ENABLE_USER_SCRIPT_SANDBOXING` to `NO` for the target.
+The script writes files in the source folder.
+
+## Continuous integration
+
+Use `--check` to make sure that the committed generated files are current:
+
+```yaml
+- name: Check the generated .strings files
+  run: swift run localizable-merger --check --strict
+```
+
+With the plugin:
+
+```sh
+swift package --allow-writing-to-package-directory merge-localizables --check
+```
+
+## Migration from 1.x
+
+- **Options.** The new names are `--base-folder`, `--work-directory`, and `--config-file`.
+  The 1.x names `--baseFolder`, `--workDirectory`, and `--configFile` continue to work.
+- **Header.** The header of a generated file has new text. The first run of version 2 rewrites each generated file.
+- **Table names.** Version 1.x paired files by language only. Version 2 pairs files by language and table name.
+  `AppA/en.lproj/InfoPlist.strings` now merges only with `Base/en.lproj/InfoPlist.strings`.
+- **Escapes.** Version 2 writes `\\`, `\n`, `\t`, and `\r` escapes. Version 1.x wrote these characters without escapes.
+- **Base folder.** The match uses full path components. `Base` does not match `Base2` or `MyBase`.
+- **Errors.** An absent base folder stops the tool with exit code 1. Version 1.x continued.
+- **Syntax.** A syntax error in a `.strings` file stops the tool. Version 1.x skipped the file.
+- **Folder position.** A `.strings` file must be directly in a `<language>.lproj` folder.
+- **Requirements.** Version 2 requires Swift 6.0 and macOS 13 to build.
+
+Refer to [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+## Roadmap
+
+- String Catalog (`.xcstrings`) support
+- `.stringsdict` support
+
+## Contribute
+
+Refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+LocalizableMerger is available under the GPL-3.0 license. Refer to [LICENSE](LICENSE).

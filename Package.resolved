@@ -1,34 +1,24 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "Guaka",
-        "repositoryURL": "https://github.com/nsomar/Guaka.git",
-        "state": {
-          "branch": null,
-          "revision": "6fb29b2378166a30d72120980e1c099c664598de",
-          "version": "0.4.1"
-        }
-      },
-      {
-        "package": "StringScanner",
-        "repositoryURL": "https://github.com/getGuaka/StringScanner.git",
-        "state": {
-          "branch": null,
-          "revision": "de1685ad202cb586d626ed52d6de904dd34189f3",
-          "version": "0.4.1"
-        }
-      },
-      {
-        "package": "Yaml",
-        "repositoryURL": "https://github.com/behrang/YamlSwift.git",
-        "state": {
-          "branch": null,
-          "revision": "287f5cab7da0d92eb947b5fd8151b203ae04a9a3",
-          "version": "3.4.4"
-        }
+  "originHash" : "52276c24e9d9e735dc705efe0e880306f28e2a8aca1cb572716c5cd5f1e28ba0",
+  "pins" : [
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+        "version" : "1.8.2"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams.git",
+      "state" : {
+        "revision" : "a27b21e0c81c5bf42049b897a62aaf387e80f279",
+        "version" : "6.2.2"
+      }
+    }
+  ],
+  "version" : 3
 }

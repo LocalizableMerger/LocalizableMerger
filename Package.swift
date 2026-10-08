@@ -1,28 +1,48 @@
-// swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.0
 
 import PackageDescription
 
 let package = Package(
-    name: "localizable-merger",
+    name: "LocalizableMerger",
+    platforms: [.macOS(.v13)],
     products: [
         .executable(name: "localizable-merger", targets: ["localizable-merger"]),
+        .library(name: "LocalizableMergerCore", targets: ["LocalizableMergerCore"]),
+        .plugin(name: "LocalizableMergerPlugin", targets: ["LocalizableMergerPlugin"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        .package(
-        url: "https://github.com/behrang/YamlSwift.git", from: "3.4.4"),
-        .package(url: "https://github.com/nsomar/Guaka.git", from: "0.4.1")
-
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "6.0.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
+            name: "LocalizableMergerCore",
+            dependencies: [.product(name: "Yams", package: "Yams")]
+        ),
+        .executableTarget(
             name: "localizable-merger",
-            dependencies: ["Guaka", "Yaml"]),
+            dependencies: [
+                "LocalizableMergerCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]
+        ),
+        .plugin(
+            name: "LocalizableMergerPlugin",
+            capability: .command(
+                intent: .custom(
+                    verb: "merge-localizables",
+                    description: "Merge the base .strings files into the target .strings files."
+                ),
+                permissions: [
+                    .writeToPackageDirectory(reason: "LocalizableMerger writes the generated .strings files.")
+                ]
+            ),
+            dependencies: ["localizable-merger"]
+        ),
         .testTarget(
-            name: "localizable-mergerTests",
-            dependencies: ["localizable-merger"]),
-    ]
+            name: "LocalizableMergerCoreTests",
+            dependencies: ["LocalizableMergerCore"]
+        ),
+    ],
+    swiftLanguageModes: [.v6]
 )
