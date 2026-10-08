@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Show the Swift version
+        run: swift --version
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+
+  example:
+    name: Check the Example folder
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check that the generated files are current
+        run: swift run localizable-merger --work-directory Example --check --strict
